@@ -15,10 +15,10 @@ import com.lib.sqlite.sqlbuilder.QueryData;
 import com.lib.sqlite.sqlbuilder.QueryData.QueryBuilder;
 import com.lib.sqlite.sqlbuilder.QueryData.QueryOpera;
 import com.lib.sqlite.sqlbuilder.SqliteBuildImpl;
-import com.lib.sqlite.sqlbuilder.SqliteCacheISuppor;
+import com.lib.sqlite.sqlbuilder.SqliteCacheISupport;
 import com.lib.sqlite.sqlbuilder.SqliteCursorParser;
 import com.lib.sqlite.sqlbuilder.SqlliteTypeConvert;
-import com.lib.sqlite.utils.LogUtils;
+import com.lib.utils.LogUtils;
 
 public final class SqliteHandler {
 
@@ -377,7 +377,7 @@ public final class SqliteHandler {
 				handler.mSqlBuild = build;
 			}
 			if (cache == null) {
-				handler.mCache = new SqliteCacheISuppor();
+				handler.mCache = new SqliteCacheISupport();
 			} else {
 				handler.mCache = cache;
 			}

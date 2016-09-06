@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 import com.lib.sqlite.CacheSupport;
 import com.lib.sqlite.SqlBuild;
-import com.lib.sqlite.utils.DoubleKeyValueMap;
+import com.lib.utils.DoubleKeyValueMap;
 
 public class SqliteBuildImpl implements SqlBuild {
 	//缓存的量一般不超过1000条，内存占用小于1m不提供删除操作,如果要删除请使用LinkedHashMap

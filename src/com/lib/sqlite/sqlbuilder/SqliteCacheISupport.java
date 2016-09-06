@@ -1,13 +1,14 @@
 package com.lib.sqlite.sqlbuilder;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 import com.lib.sqlite.CacheSupport;
 import com.lib.sqlite.anno.Id;
 import com.lib.sqlite.anno.NotSave;
 
-public class SqliteCacheISuppor implements CacheSupport {
+public class SqliteCacheISupport implements CacheSupport {
 	//缓存的量一般不超过1000条，内存占用小于1m不提供删除操作,如果要删除请使用LinkedHashMap
 	private final HashMap<Class<? extends Object>, Field[]> mFieldCache = new HashMap<Class<? extends Object>, Field[]>();
 
@@ -20,7 +21,8 @@ public class SqliteCacheISuppor implements CacheSupport {
 			int i = 0;
 			int swiLast = length - 1;
 			while (i <= swiLast && fields[i] != null) {//如果有NotSave注解 就把当前的field和数组最后元素的交换。如果没有NotSave注解就判断下一个
-				if (fields[i].getAnnotation(NotSave.class) != null) {
+				if (fields[i].getAnnotation(NotSave.class) != null || Modifier.isFinal(fields[i].getModifiers()) || Modifier.isStatic(fields[i].getModifiers())) {
+
 					fields[i] = fields[swiLast];
 					swiLast--;
 				} else {

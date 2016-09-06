@@ -11,7 +11,7 @@ import android.database.Cursor;
 import com.lib.sqlite.CacheSupport;
 import com.lib.sqlite.CursorParser;
 import com.lib.sqlite.TypeConVert;
-import com.lib.sqlite.utils.LogUtils;
+import com.lib.utils.LogUtils;
 
 public class SqliteCursorParser implements CursorParser {
 

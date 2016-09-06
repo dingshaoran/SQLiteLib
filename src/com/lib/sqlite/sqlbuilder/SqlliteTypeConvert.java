@@ -7,7 +7,7 @@ import java.lang.reflect.TypeVariable;
 import android.database.Cursor;
 
 import com.lib.sqlite.TypeConVert;
-import com.lib.sqlite.utils.LogUtils;
+import com.lib.utils.LogUtils;
 
 public class SqlliteTypeConvert implements TypeConVert {
 	@SuppressWarnings("unchecked")
