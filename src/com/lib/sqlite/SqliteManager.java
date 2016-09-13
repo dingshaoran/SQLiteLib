@@ -12,12 +12,20 @@ public class SqliteManager {
 	private static Context mContext;
 	private static List<Class<? extends Object>> mObjs;
 
+	/**
+	 * 
+	 * @param context  application
+	 * @param objs  本应用中所有存到数据库中的 bean
+	 */
 	public static void init(Context context, List<Class<? extends Object>> objs) {
 		mContext = context;
 		mObjs = objs;
 	}
 
 	public static <T> SqliteHandler getHandle(String name) {
+		if (mObjs == null) {
+			throw new RuntimeException("请在 application 中调用 init");
+		}
 		SqliteHandler cur = DBs.get(name);
 		if (cur == null) {
 			cur = new SqliteHandler.Builder(mContext, mObjs, mContext.getDatabasePath(name)).build();
