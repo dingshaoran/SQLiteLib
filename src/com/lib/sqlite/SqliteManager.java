@@ -24,7 +24,7 @@ public class SqliteManager {
 
 	public static <T> SqliteHandler getHandle(String name) {
 		if (mObjs == null) {
-			throw new RuntimeException("请在 application 中调用 init");
+			throw new RuntimeException("请在 application 中调用 SqliteManager.init");
 		}
 		SqliteHandler cur = DBs.get(name);
 		if (cur == null) {
