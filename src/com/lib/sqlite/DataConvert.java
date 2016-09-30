@@ -3,8 +3,9 @@ package com.lib.sqlite;
 import android.database.Cursor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 
-public interface TypeConVert {
+public interface DataConvert {
     /**
      * 通过cursor获取object
      */
@@ -13,7 +14,7 @@ public interface TypeConVert {
     /**
      * 通过corsor获取固定列的值，其他列不赋值
      */
-    <T> Object getColumnValue(Cursor cur, Class<T> cls, int index);
+    <T> Object getColumnValue(Cursor cur, Type cls, int index);
 
     /**
      * 获取object中所有的字段值，按照field[]的顺序
