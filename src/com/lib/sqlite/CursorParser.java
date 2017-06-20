@@ -2,6 +2,7 @@ package com.lib.sqlite;
 
 import android.database.Cursor;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 @SuppressWarnings("unused")
@@ -25,6 +26,6 @@ public interface CursorParser {
      * @param cls    8种基本类型或者 string
      * @return ArrayList<T>  基本数据类型或 String
      */
-    <T> ArrayList<T> parseColumn(DataConvert tyc, Cursor cursor, Class<T> cls);
+    <T> ArrayList<T> parseColumn(DataConvert tyc, Cursor cursor, Type cls, String columnName);
 
 }

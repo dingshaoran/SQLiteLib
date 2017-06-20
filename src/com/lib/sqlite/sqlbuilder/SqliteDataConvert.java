@@ -9,14 +9,14 @@ import com.lib.utils.LogUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
-public class SqlliteTypeConvert implements DataConvert {
+public class SqliteDataConvert implements DataConvert {
     private final FormatObject mFo;
 
-    public SqlliteTypeConvert() {
+    public SqliteDataConvert() {
         this(null);
     }
 
-    public SqlliteTypeConvert(FormatObject fo) {
+    public SqliteDataConvert(FormatObject fo) {
         if (fo == null) {
             mFo = new FormatObject() {
                 @Override

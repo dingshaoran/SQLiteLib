@@ -9,6 +9,7 @@ import com.lib.sqlite.SqliteManager;
 import com.lib.utils.LogUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class SqliteCursorParser implements CursorParser {
@@ -34,12 +35,13 @@ public class SqliteCursorParser implements CursorParser {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ArrayList<T> parseColumn(DataConvert tyc, Cursor cursor, Class<T> cls) {
+    public <T> ArrayList<T> parseColumn(DataConvert tyc, Cursor cursor, Type cls, String columnName) {
         ArrayList<T> list = new ArrayList<T>();
         if (cursor != null) {
             try {
+                int index = columnName == null ? 0 : cursor.getColumnIndex(columnName);
                 while (cursor.moveToNext()) {
-                    list.add((T) tyc.getColumnValue(cursor, cls, 0));
+                    list.add((T) tyc.getColumnValue(cursor, cls, index));
                 }
 
             } catch (Exception e) {

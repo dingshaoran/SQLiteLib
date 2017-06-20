@@ -9,6 +9,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 public class SqliteCacheISupport implements CacheSupport {
+    private static final String NAME_ID = "id";
     //缓存的量一般不超过1000条，内存占用小于1m不提供删除操作,如果要删除请使用LinkedHashMap
     private final HashMap<Class<?>, Field[]> mFieldCache = new HashMap<Class<?>, Field[]>();
 
@@ -27,7 +28,7 @@ public class SqliteCacheISupport implements CacheSupport {
                     swiLast--;
                 } else {
                     fields[i].setAccessible(true);
-                    if (fields[i].getAnnotation(Id.class) != null) {//如果是带有id注解为主键，放到数组第一个
+                    if (fields[i].getAnnotation(Id.class) != null || NAME_ID.equals(fields[i].getName())) {//如果是带有id注解为主键，放到数组第一个
                         Field temp = fields[i];
                         fields[i] = fields[0];
                         fields[0] = temp;

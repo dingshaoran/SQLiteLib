@@ -14,27 +14,29 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
 public final class SqliteHandler {
     private final HashSet<Class<?>> mTables = new HashSet<Class<?>>(); //已经创建了 对应表的 class
+    private final NameConvert mNameConvert;
     private SQLiteDatabase mDB;
     private SqlBuild mSqlBuild;
     private CacheSupport mCache;
     private CursorParser mCurParser;
     private DataConvert mTypeCvt;
 
-    public SqliteHandler(File dbFile, int version, SqlBuild sqlBuild, CacheSupport cache, CursorParser curparser, DataConvert typeCvt) {
+    public SqliteHandler(File dbFile, int version, NameConvert nameConvert, SqlBuild sqlBuild, CacheSupport cache, CursorParser curparser, DataConvert typeCvt) {
         mSqlBuild = sqlBuild;
         mCache = cache;
         mCurParser = curparser;
         this.mTypeCvt = typeCvt;
+        this.mNameConvert = nameConvert;
         //noinspection ResultOfMethodCallIgnored
         dbFile.getParentFile().mkdirs();
         mDB = SQLiteDatabase.openOrCreateDatabase(dbFile, null);
         try {
             ArrayList<String> names = getTableNames();
             for (String name : names) {
-                Class<?> cls = sqlBuild.getTableClass(name);
+                Class<?> cls = mNameConvert.getTableClass(name);
                 if (cls != null) {
                     mTables.add(cls);
                 }
@@ -43,16 +45,7 @@ public final class SqliteHandler {
             if (oldVersion != version) {
                 try {
                     mDB.beginTransaction();
-                    for (Class<?> key : mTables) {
-                        Cursor cursor = getCursor(key, new QueryBuilder().limit(0, 1).build());
-                        for (Field field : mCache.getFieldWithClass(key)) {
-                            if (cursor.getColumnIndex(field.getName()) == -1) {
-                                String updateColumn = mSqlBuild.updateColumn(key, field.getName());
-                                LogUtils.i(SqliteManager.TAG, updateColumn);
-                                mDB.execSQL(updateColumn);
-                            }
-                        }
-                    }
+                    updateTable();
                     mDB.setVersion(version);
                     mDB.setTransactionSuccessful();
                 } catch (Exception e) {
@@ -73,10 +66,24 @@ public final class SqliteHandler {
     private void createTable(Class<?> bean) {
         synchronized (mTables) {
             if (!mTables.contains(bean)) {
-                String table = mSqlBuild.createTable(mCache, bean);
+                String table = mSqlBuild.createTable(mCache, mNameConvert, bean);
                 LogUtils.i(SqliteManager.TAG, table);
                 mDB.execSQL(table);
                 mTables.add(bean);
+            }
+        }
+    }
+
+    private void updateTable() {
+        for (Class<?> key : mTables) {
+            Cursor cursor = getCursor("*", key, new QueryBuilder().limit(0, 1).build());
+            for (Field field : mCache.getFieldWithClass(key)) {
+                String name = mNameConvert.getColumnName(field);
+                if (cursor.getColumnIndex(name) == -1) {
+                    String updateColumn = mSqlBuild.updateColumn(key, mNameConvert, name);
+                    LogUtils.i(SqliteManager.TAG, updateColumn);
+                    mDB.execSQL(updateColumn);
+                }
             }
         }
     }
@@ -85,7 +92,7 @@ public final class SqliteHandler {
         String tableNames = mSqlBuild.getTableNames();
         LogUtils.i(SqliteManager.TAG, tableNames);
         Cursor c = mDB.rawQuery(tableNames, null);
-        return mCurParser.parseColumn(mTypeCvt, c, String.class);
+        return mCurParser.parseColumn(mTypeCvt, c, String.class, null);
     }
 
     /**
@@ -103,7 +110,7 @@ public final class SqliteHandler {
             if (fields[0].getType() != String.class) {
                 values[0] = null;
             }
-            String addSql = mSqlBuild.addSql(mCache, cls);
+            String addSql = mSqlBuild.addSql(mCache, mNameConvert, cls);
             LogUtils.i(SqliteManager.TAG, addSql);
             mDB.execSQL(addSql, values);
             return true;
@@ -133,7 +140,7 @@ public final class SqliteHandler {
         mDB.beginTransaction();
         try {
             createTable(obj_0.getClass());
-            String addSql = mSqlBuild.addSql(mCache, cls_0);
+            String addSql = mSqlBuild.addSql(mCache, mNameConvert, cls_0);
             LogUtils.i(SqliteManager.TAG, addSql);
             for (int i = 0; i < list.size(); i++) {
                 Object obj = list.get(i);
@@ -175,12 +182,12 @@ public final class SqliteHandler {
                 cls = obj.getClass();
                 if (sel == null) {
                     fields = mCache.getFieldWithClass(cls);
-                    String name = fields[0].getName();
+                    String name = mNameConvert.getColumnName(fields[0]);
                     sel = new QueryBuilder().where(name, QueryOpera.equal, String.valueOf(fields[0].get(obj))).build();
                 }
             }
             String[] values = mTypeCvt.getValues(fields, obj, sel.getParams());
-            String updateSql = mSqlBuild.updateSql(mCache, cls, sel.getQuery());
+            String updateSql = mSqlBuild.updateSql(mCache, mNameConvert, cls, sel.getQuery());
             LogUtils.i(SqliteManager.TAG, updateSql);
             mDB.execSQL(updateSql, values);
             return true;
@@ -207,13 +214,13 @@ public final class SqliteHandler {
         }
         Class<?> cls_0 = obj_0.getClass();
         Field[] fields = mCache.getFieldWithClass(cls_0);
-        String idName = fields[0].getName();
+        String idName = mNameConvert.getColumnName(fields[0]);
         mDB.beginTransaction();
         try {
             createTable(obj_0.getClass());
             if (sel == null) {
                 sel = new QueryBuilder().where(idName, QueryOpera.equal, "").build();
-                String sql = mSqlBuild.updateSql(mCache, cls_0, sel.getQuery());
+                String sql = mSqlBuild.updateSql(mCache, mNameConvert, cls_0, sel.getQuery());
                 LogUtils.i(SqliteManager.TAG, sql);
                 for (int i = 0; i < list.size(); i++) {
                     Object obj = list.get(i);
@@ -224,7 +231,7 @@ public final class SqliteHandler {
                 for (int i = 0; i < list.size(); i++) {
                     Object obj = list.get(i);
                     Object[] values = mTypeCvt.getValues(fields, obj, sel.getParams());
-                    String s = mSqlBuild.updateSql(mCache, cls_0, sel.getQuery());
+                    String s = mSqlBuild.updateSql(mCache, mNameConvert, cls_0, sel.getQuery());
                     LogUtils.i(SqliteManager.TAG, s);
                     mDB.execSQL(s, values);
                 }
@@ -248,7 +255,7 @@ public final class SqliteHandler {
      */
     public <T> ArrayList<T> get(Class<T> cls, QueryData sel) {
         try {
-            return mCurParser.parseObject(mTypeCvt, getCursor(cls, sel), mCache, cls);
+            return mCurParser.parseObject(mTypeCvt, getCursor(null, cls, sel), mCache, cls);
         } catch (Exception e) {
             LogUtils.e(SqliteManager.TAG, e);
             return new ArrayList<T>();
@@ -262,9 +269,15 @@ public final class SqliteHandler {
      * @param sel 查找条件
      * @return 数据库中的对应数据
      */
-    public <T> ArrayList<T> getColumn(Class<T> cls, QueryData sel) {
+    public <T> ArrayList<T> getColumn(Class cls, String columnName, QueryData sel) {
         try {
-            return mCurParser.parseColumn(mTypeCvt, getCursor(cls, sel), cls);
+            Class<?> type;
+            try {
+                type = cls.getField(columnName).getType();
+            } catch (NoSuchFieldException e) {
+                type = String.class;
+            }
+            return mCurParser.parseColumn(mTypeCvt, getCursor(columnName, cls, sel), type, columnName);
         } catch (Exception e) {
             LogUtils.e(SqliteManager.TAG, e);
             return new ArrayList<T>();
@@ -278,13 +291,13 @@ public final class SqliteHandler {
      * @param sel 查找条件
      * @return 数据库中的对应数据
      */
-    public <T> Cursor getCursor(Class<T> cls, QueryData sel) {
+    public <T> Cursor getCursor(String selectColumn, Class<T> cls, QueryData sel) {
         if (sel == null) {
-            String query = mSqlBuild.querySql(mCache, cls, null);
+            String query = mSqlBuild.querySql(selectColumn, mCache, mNameConvert, cls, null);
             LogUtils.i(SqliteManager.TAG, query);
             return mDB.rawQuery(query, null);
         } else {
-            String query = mSqlBuild.querySql(mCache, cls, sel.getQuery());
+            String query = mSqlBuild.querySql(selectColumn, mCache, mNameConvert, cls, sel.getQuery());
             LogUtils.i(SqliteManager.TAG, query);
             return mDB.rawQuery(query, sel.getParams());
         }
@@ -304,12 +317,12 @@ public final class SqliteHandler {
             Field[] fields = mCache.getFieldWithClass(cls);
             if (sel == null) {
                 String[] values = mTypeCvt.getValues(fields, obj);
-                String s = mSqlBuild.putSql(mCache, cls, null);
+                String s = mSqlBuild.putSql(mCache, mNameConvert, cls, null);
                 LogUtils.i(SqliteManager.TAG, s);
                 mDB.execSQL(s, values);
             } else {
                 String[] values = mTypeCvt.getPutValues(sel.getParams(), 0, fields, obj);
-                String s = mSqlBuild.putSql(mCache, cls, sel.getQuery());
+                String s = mSqlBuild.putSql(mCache, mNameConvert, cls, sel.getQuery());
                 LogUtils.i(SqliteManager.TAG, s);
                 mDB.execSQL(s, values);
             }
@@ -337,12 +350,12 @@ public final class SqliteHandler {
         }
         Class<?> cls_0 = obj_0.getClass();
         Field[] fields = mCache.getFieldWithClass(cls_0);
-        String idnName = fields[0].getName();
+        String idnName = mNameConvert.getColumnName(fields[0]);
         mDB.beginTransaction();
         try {
             createTable(obj_0.getClass());
             if (sel == null) {
-                String putSql = mSqlBuild.putSql(mCache, cls_0, null);
+                String putSql = mSqlBuild.putSql(mCache, mNameConvert, cls_0, null);
                 LogUtils.i(SqliteManager.TAG, putSql);
                 for (int i = 0; i < list.size(); i++) {
                     Object obj = list.get(i);
@@ -355,12 +368,12 @@ public final class SqliteHandler {
                     QueryData queryData = sel.get(i);
                     if (queryData == null) {
                         String[] values = mTypeCvt.getValues(fields, obj);
-                        String s = mSqlBuild.putSql(mCache, cls_0, null);
+                        String s = mSqlBuild.putSql(mCache, mNameConvert, cls_0, null);
                         LogUtils.i(SqliteManager.TAG, s);
                         mDB.execSQL(s, values);
                     } else {
                         String[] values = mTypeCvt.getPutValues(queryData.getParams(), 0, fields, obj);
-                        String putSql = mSqlBuild.putSql(mCache, cls_0, queryData.getQuery());
+                        String putSql = mSqlBuild.putSql(mCache, mNameConvert, cls_0, queryData.getQuery());
                         LogUtils.i(SqliteManager.TAG, putSql);
                         mDB.execSQL(putSql, values);
                     }
@@ -388,11 +401,11 @@ public final class SqliteHandler {
                 clz = obj.getClass();
                 if (sel == null) {
                     Field field = mCache.getFieldWithClass(clz)[0];
-                    sel = new QueryBuilder().where(field.getName(), QueryOpera.equal, String.valueOf(field.get(obj))).build();
+                    sel = new QueryBuilder().where(mNameConvert.getColumnName(field), QueryOpera.equal, String.valueOf(field.get(obj))).build();
                 }
             }
 
-            String delete = mSqlBuild.delete(clz, sel.getQuery());
+            String delete = mSqlBuild.delete(clz, mNameConvert, sel.getQuery());
             LogUtils.i(SqliteManager.TAG, delete);
             mDB.execSQL(delete, sel.getParams());
             return true;
@@ -412,11 +425,11 @@ public final class SqliteHandler {
         }
         Class<?> cls_0 = obj_0.getClass();
         Field field = mCache.getFieldWithClass(cls_0)[0];
-        String idName = field.getName();
+        String idName = mNameConvert.getColumnName(field);
         mDB.beginTransaction();
         try {
             QueryData build = new QueryBuilder().where(idName, QueryOpera.equal, "").build();
-            String sql = mSqlBuild.delete(cls_0, build.getQuery());
+            String sql = mSqlBuild.delete(cls_0, mNameConvert, build.getQuery());
             LogUtils.i(SqliteManager.TAG, sql);
             for (int i = 0; i < list.size(); i++) {
                 Object obj = list.get(i);

@@ -7,7 +7,8 @@ import android.content.pm.PackageManager;
 import com.lib.sqlite.sqlbuilder.SqliteBuildImpl;
 import com.lib.sqlite.sqlbuilder.SqliteCacheISupport;
 import com.lib.sqlite.sqlbuilder.SqliteCursorParser;
-import com.lib.sqlite.sqlbuilder.SqlliteTypeConvert;
+import com.lib.sqlite.sqlbuilder.SqliteNameConvert;
+import com.lib.sqlite.sqlbuilder.SqliteDataConvert;
 import com.lib.utils.LogUtils;
 
 import java.io.File;
@@ -23,7 +24,8 @@ public class SqliteManager {
     private final SqliteBuildImpl mSqliteBuild = new SqliteBuildImpl();
     private final SqliteCacheISupport mCacheISupport = new SqliteCacheISupport();
     private final SqliteCursorParser mCursorParser = new SqliteCursorParser();
-    private final SqlliteTypeConvert mTypeConvert = new SqlliteTypeConvert();
+    private final SqliteDataConvert mTypeConvert = new SqliteDataConvert();
+    private final NameConvert mNameConvert = new SqliteNameConvert();
 
     private SqliteManager() {
     }
@@ -32,7 +34,7 @@ public class SqliteManager {
         return ins;
     }
 
-    public SqliteHandler getHandle(Context context, File dbFile, SqlBuild sqlBuild, CacheSupport cache, CursorParser curparser, DataConvert typeCvt) {
+    public SqliteHandler getHandle(Context context, File dbFile, NameConvert nameConvert, SqlBuild sqlBuild, CacheSupport cache, CursorParser curparser, DataConvert typeCvt) {
         SqliteHandler cur = mDBs.get(dbFile);
         if (cur == null) {
             synchronized (mDBs) {
@@ -43,7 +45,7 @@ public class SqliteManager {
                 } catch (PackageManager.NameNotFoundException e) {
                     LogUtils.e(SqliteManager.TAG, e);
                 }
-                cur = new SqliteHandler(dbFile, newVersion, sqlBuild, cache, curparser, typeCvt);
+                cur = new SqliteHandler(dbFile, newVersion, nameConvert, sqlBuild, cache, curparser, typeCvt);
                 mDBs.put(dbFile, cur);
             }
         } else {
@@ -52,21 +54,21 @@ public class SqliteManager {
         return cur;
     }
 
-    public SqliteHandler getHandle(Context context, File file, SqlliteTypeConvert typeConvert) {
-        return getHandle(context, file, mSqliteBuild, mCacheISupport, mCursorParser, typeConvert);
+    public SqliteHandler getHandle(Context context, File file, SqliteDataConvert typeConvert) {
+        return getHandle(context, file, mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, typeConvert);
     }
 
 
-    public SqliteHandler getHandle(Context context, SqlliteTypeConvert.FormatObject fo) {
-        return getHandle(context, context.getDatabasePath(DEFAULT), mSqliteBuild, mCacheISupport, mCursorParser, new SqlliteTypeConvert(fo));
+    public SqliteHandler getHandle(Context context, SqliteDataConvert.FormatObject fo) {
+        return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, new SqliteDataConvert(fo));
     }
 
-    public SqliteHandler getHandle(Context context, SqlliteTypeConvert fo) {
-        return getHandle(context, context.getDatabasePath(DEFAULT), mSqliteBuild, mCacheISupport, mCursorParser, fo);
+    public SqliteHandler getHandle(Context context, SqliteDataConvert fo) {
+        return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, fo);
     }
 
     public SqliteHandler getHandle(Context context) {
-        return getHandle(context, context.getDatabasePath(DEFAULT), mSqliteBuild, mCacheISupport, mCursorParser, mTypeConvert);
+        return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, mTypeConvert);
     }
 
     public void release(File dbFile) {
