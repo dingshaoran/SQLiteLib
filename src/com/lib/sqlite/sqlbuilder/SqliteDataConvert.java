@@ -148,4 +148,9 @@ public class SqliteDataConvert implements DataConvert {
 
         String toString(Object si);
     }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + mFo.getClass().getName();
+    }
 }

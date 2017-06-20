@@ -7,20 +7,20 @@ import android.content.pm.PackageManager;
 import com.lib.sqlite.sqlbuilder.SqliteBuildImpl;
 import com.lib.sqlite.sqlbuilder.SqliteCacheISupport;
 import com.lib.sqlite.sqlbuilder.SqliteCursorParser;
-import com.lib.sqlite.sqlbuilder.SqliteNameConvert;
 import com.lib.sqlite.sqlbuilder.SqliteDataConvert;
+import com.lib.sqlite.sqlbuilder.SqliteNameConvert;
 import com.lib.utils.LogUtils;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
 public class SqliteManager {
     public static final String TAG = "SqliteManager";
+    public static int CACHESIZE = 5;
     private static final String DEFAULT = "Default";
     private static SqliteManager ins = new SqliteManager();
-    private final Map<File, SqliteHandler> mDBs = new HashMap<File, SqliteHandler>();
+    private final LinkedHashMap<String, SqliteHandler> mDBs = new LinkedHashMap<String, SqliteHandler>(10, 0.75f, true);
     private final SqliteBuildImpl mSqliteBuild = new SqliteBuildImpl();
     private final SqliteCacheISupport mCacheISupport = new SqliteCacheISupport();
     private final SqliteCursorParser mCursorParser = new SqliteCursorParser();
@@ -35,7 +35,8 @@ public class SqliteManager {
     }
 
     public SqliteHandler getHandle(Context context, File dbFile, NameConvert nameConvert, SqlBuild sqlBuild, CacheSupport cache, CursorParser curparser, DataConvert typeCvt) {
-        SqliteHandler cur = mDBs.get(dbFile);
+        String key = dbFile.toString() + typeCvt.toString();
+        SqliteHandler cur = mDBs.get(key);
         if (cur == null) {
             synchronized (mDBs) {
                 int newVersion = 0;
@@ -46,7 +47,11 @@ public class SqliteManager {
                     LogUtils.e(SqliteManager.TAG, e);
                 }
                 cur = new SqliteHandler(dbFile, newVersion, nameConvert, sqlBuild, cache, curparser, typeCvt);
-                mDBs.put(dbFile, cur);
+                mDBs.put(key, cur);
+                int size = mDBs.size();
+                for (int i = 0; i < size - CACHESIZE; i++) {//已经大于缓存个数的删掉
+                    mDBs.remove(mDBs.keySet().iterator().next());
+                }
             }
         } else {
             cur.setTypeCvt(typeCvt);
@@ -54,7 +59,7 @@ public class SqliteManager {
         return cur;
     }
 
-    public SqliteHandler getHandle(Context context, File file, SqliteDataConvert typeConvert) {
+    public SqliteHandler getHandle(Context context, File file, DataConvert typeConvert) {
         return getHandle(context, file, mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, typeConvert);
     }
 
@@ -63,7 +68,7 @@ public class SqliteManager {
         return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, new SqliteDataConvert(fo));
     }
 
-    public SqliteHandler getHandle(Context context, SqliteDataConvert fo) {
+    public SqliteHandler getHandle(Context context, DataConvert fo) {
         return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, fo);
     }
 
@@ -71,8 +76,12 @@ public class SqliteManager {
         return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, mTypeConvert);
     }
 
+    public void release(File dbFile, DataConvert typeConvert) {
+        mDBs.remove(dbFile.toString() + typeConvert.toString());
+    }
+
     public void release(File dbFile) {
-        mDBs.remove(dbFile);
+        mDBs.remove(dbFile.toString() + mTypeConvert.toString());
     }
 
     public void releaseAll() {
