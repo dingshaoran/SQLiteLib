@@ -1,9 +1,9 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile project(':UtilsLib')
-    compile project(':UtilsLib')
+    compile 'com.lib:UtilsLib:latest.integration'
 }
 
 android {
@@ -37,5 +37,14 @@ android {
         // by a similar customization.
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
+    }
+
+    publish {
+        userOrg = 'dingshaoran'
+        groupId = 'com.lib'
+        artifactId = 'SqliteLib'
+        publishVersion = '1.0'
+        desc = '数据库操作工具，特点：1、随版本自动升级添加的字段；2、某一个字段可以为 基本类型或 string 以外的object'
+        website = 'https://github.com/dingshaoran/SqliteLib'
     }
 }
