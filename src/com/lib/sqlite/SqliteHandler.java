@@ -121,7 +121,7 @@ public final class SqliteHandler {
     }
 
     /**
-     * 插入多条数据（有序）list中的object必须为同一种类型的bean，<br/>
+     * 插入多条数据（有序）list中的object必须为同一种类型的bean，
      * 主键必须带注解 @id ，如果主键是String不自增，如果主键不是string自增，不保存的字段使用 @NotSave 注解表明
      *
      * @param list 要添加的数据
@@ -265,7 +265,7 @@ public final class SqliteHandler {
     /**
      * 查找一个字段的数据
      *
-     * @param cls 要查找的类 Class<T> 必须是8种基本类型或者 String
+     * @param cls 要查找的类 Class 必须是8种基本类型或者 String
      * @param sel 查找条件
      * @return 数据库中的对应数据
      */

@@ -14,7 +14,7 @@ public interface CursorParser {
      * @param cursor 游标
      * @param mCache 缓存
      * @param cls    字节码
-     * @return ArrayList<T>  实体类
+     * @return ArrayList  实体类
      */
     <T> ArrayList<T> parseObject(DataConvert tyc, Cursor cursor, CacheSupport mCache, Class<T> cls);
 
@@ -24,7 +24,7 @@ public interface CursorParser {
      * @param tyc    转换器
      * @param cursor 游标
      * @param cls    8种基本类型或者 string
-     * @return ArrayList<T>  基本数据类型或 String
+     * @return ArrayList 基本数据类型或 String
      */
     <T> ArrayList<T> parseColumn(DataConvert tyc, Cursor cursor, Type cls, String columnName);
 
