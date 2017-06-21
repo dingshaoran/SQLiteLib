@@ -63,6 +63,10 @@ public class SqliteManager {
         return getHandle(context, file, mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, typeConvert);
     }
 
+    public SqliteHandler getHandle(Context context, File file) {
+        return getHandle(context, file, mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, mTypeConvert);
+    }
+
 
     public SqliteHandler getHandle(Context context, SqliteDataConvert.FormatObject fo) {
         return getHandle(context, context.getDatabasePath(DEFAULT), mNameConvert, mSqliteBuild, mCacheISupport, mCursorParser, new SqliteDataConvert(fo));
