@@ -27,3 +27,8 @@ getHandle还重载了更多参数的方法，可以自己转换保存的字段�
 
 handle 是带有缓存的通过更改SqliteManager中的CacheSize的大小控制缓存的量。
 
+
+集成：
+    compile 'com.lib:SqliteLib:latest.integration'
+     也可以下载代码集成 （不推荐，内部接口提供的比较完成，最好不要破坏结构）
+
