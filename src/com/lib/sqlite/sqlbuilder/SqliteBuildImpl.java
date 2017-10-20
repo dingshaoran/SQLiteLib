@@ -169,7 +169,7 @@ public class SqliteBuildImpl implements SqlBuild {
                 builder.append(" FROM ");
                 builder.append(tableName);
                 builder.append(sel);
-                builder.append(" )");
+                builder.append(" ),");
             } else {
                 builder.append("?,");
             }

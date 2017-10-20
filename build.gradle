@@ -43,8 +43,8 @@ android {
         userOrg = 'dingshaoran'
         groupId = 'com.lib'
         artifactId = 'SqliteLib'
-        publishVersion = '1.0'
-        desc = '数据库操作工具，特点：1、随版本自动升级添加的字段；2、某一个字段可以为 基本类型或 string 以外的object'
+        publishVersion = '1.5'
+        desc = '数据库操作工具，升级 put 方法报错的问题'
         website = 'https://github.com/dingshaoran/SqliteLib'
     }
 }
