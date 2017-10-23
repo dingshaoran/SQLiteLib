@@ -8,7 +8,7 @@ dependencies {
 
 android {
     compileSdkVersion 19
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '25.0.3'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -48,3 +48,6 @@ android {
         website = 'https://github.com/dingshaoran/SqliteLib'
     }
 }
+
+//./gradlew clean build bintrayUpload -PbintrayUser=dingshaoran-PbintrayKey=从editprofile最后一项复制过来 -PdryRun=false
+//根项目的build.gradle添加classpath 'com.novoda:bintray-release:0.5.0'
