@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
@@ -38,16 +37,4 @@ android {
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
     }
-
-    publish {
-        userOrg = 'dingshaoran'
-        groupId = 'com.lib'
-        artifactId = 'SqliteLib'
-        publishVersion = '1.5'
-        desc = '数据库操作工具，升级 put 方法报错的问题'
-        website = 'https://github.com/dingshaoran/SqliteLib'
-    }
 }
-
-//./gradlew clean build bintrayUpload -PbintrayUser=dingshaoran-PbintrayKey=从editprofile最后一项复制过来 -PdryRun=false
-//根项目的build.gradle添加classpath 'com.novoda:bintray-release:0.5.0'
